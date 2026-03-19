@@ -64,6 +64,6 @@ func TestBlockHash(t *testing.T) {
 		Transactions: []Transaction{},
 	}
 	h := b.Hash()
-	fmt.Println(h)
+	fmt.Println(h.String())
 	assert.False(t, h.IsZero())
 }
