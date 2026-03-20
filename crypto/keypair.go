@@ -44,28 +44,28 @@ func (p PublicKey) Address() types.Address {
 	return types.AddressFromByte(h[len(h)-20:])
 }
 
-func (p PrivateKey) Sign(data []byte) (*signature, error) {
+func (p PrivateKey) Sign(data []byte) (*Signature, error) {
 	r, s, err := ecdsa.Sign(rand.Reader, p.key, data)
 	if err != nil {
 		return nil, err
 	}
-	sig := &signature{
+	sig := &Signature{
 		R: r,
 		S: s,
 	}
 	return sig, nil
 }
 
-type signature struct {
+type Signature struct {
 	R, S *big.Int
 }
 
-func (sig signature) String() string {
+func (sig Signature) String() string {
 	b := append(sig.S.Bytes(), sig.R.Bytes()...)
 	return hex.EncodeToString(b)
 }
 
-func (sig signature) Verify(pubkey PublicKey, data []byte) bool {
+func (sig Signature) Verify(pubkey PublicKey, data []byte) bool {
 	x, y := elliptic.UnmarshalCompressed(elliptic.P256(), pubkey)
 	key := &ecdsa.PublicKey{
 		Curve: elliptic.P256(),
