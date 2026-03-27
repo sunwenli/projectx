@@ -2,24 +2,26 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"projectx/crypto"
 )
 
 type Transaction struct {
 	Data      []byte
-	Publickey crypto.PublicKey
+	From      crypto.PublicKey
 	Signature *crypto.Signature
 }
 
-func (tx *Transaction) Sign(prikey *crypto.PrivateKey) error {
+func (tx *Transaction) Sign(prikey crypto.PrivateKey) error {
 	sig, err := prikey.Sign(tx.Data)
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("sig:", sig)
 	tx.Signature = sig
-	tx.Publickey = prikey.PublicKey()
+	tx.From = prikey.PublicKey()
 	return nil
 }
 
@@ -27,7 +29,7 @@ func (tx *Transaction) Verify() error {
 	if tx.Signature == nil {
 		return errors.New("transaction has no signature")
 	}
-	if !tx.Signature.Verify(tx.Publickey, tx.Data) {
+	if !tx.Signature.Verify(tx.From, tx.Data) {
 		return errors.New("invalid transaction signature")
 	}
 	return nil

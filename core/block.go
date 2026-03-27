@@ -60,7 +60,16 @@ func (b *Block) Verify() error {
 	if !b.Signature.Verify(b.Validator, b.Header.Bytes()) {
 		return errors.New("invalid block signature")
 	}
+	for _, tx := range b.Transactions {
+		if err := tx.Verify(); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+func (b *Block) AddTransaction(tx *Transaction) {
+	b.Transactions = append(b.Transactions, *tx)
 }
 
 func (b *Block) Encode(w io.Writer, enc Encoder[*Block]) error {
@@ -71,10 +80,10 @@ func (b *Block) Decode(r io.Reader, dec Decoder[*Block]) error {
 	return dec.Decode(r, b)
 }
 
-func (b *Block) Hash(hasher Hasher[*Block]) types.Hash {
+func (b *Block) Hash(hasher Hasher[*Header]) types.Hash {
 
 	if b.hash.IsZero() {
-		b.hash = hasher.Hash(b)
+		b.hash = hasher.Hash(b.Header)
 	}
 
 	return b.hash

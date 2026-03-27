@@ -2,13 +2,14 @@ package core
 
 import (
 	"fmt"
+	"projectx/types"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func newgenesisblock(t *testing.T) *BlockChain {
-	bc, err := NewBlockChain(randomBlock(0))
+	bc, err := NewBlockChain(randomBlock(0, types.Hash{}))
 	assert.Nil(t, err)
 	return bc
 }
@@ -28,14 +29,34 @@ func TestAddBlock(t *testing.T) {
 
 	lenblock := 1000
 	for i := 0; i < lenblock; i++ {
-
-		assert.Nil(t, bc.AddBlock(randomBlockWithSignature(t, uint32(i+1))))
+		assert.Nil(t, bc.AddBlock(randomBlockWithSignature(t, uint32(i+1), getPrevBlockHash(t, bc, uint32(i+1)))))
 		// assert.Nil(t, bc.AddBlock(randomBlock(uint32(i+1))))
 	}
 
 	assert.Equal(t, len(bc.headers), lenblock+1)
 	assert.Equal(t, bc.Heigth(), uint32(lenblock))
+	assert.NotNil(t, bc.AddBlock(randomBlock(90, types.Hash{})))
+}
 
-	// assert.NotNil(t, bc.AddBlock(randomBlockWithSignature(t, 89)))
-	assert.NotNil(t, bc.AddBlock(randomBlock(90)))
+func TestGetHeader(t *testing.T) {
+	bc := newgenesisblock(t)
+
+	lenblock := 1000
+	for i := 0; i < lenblock; i++ {
+		b := randomBlockWithSignature(t, uint32(i+1), getPrevBlockHash(t, bc, uint32(i+1)))
+		assert.Nil(t, bc.AddBlock(b))
+		header, err := bc.GetHeader(b.Heigth)
+		assert.Nil(t, err)
+		assert.Equal(t, header, b.Header)
+	}
+
+	assert.Equal(t, len(bc.headers), lenblock+1)
+	assert.Equal(t, bc.Heigth(), uint32(lenblock))
+	assert.NotNil(t, bc.AddBlock(randomBlock(90, types.Hash{})))
+}
+
+func getPrevBlockHash(t *testing.T, bc *BlockChain, height uint32) types.Hash {
+	prevheader, err := bc.GetHeader(height - 1)
+	assert.Nil(t, err)
+	return BlockHasher{}.Hash(prevheader)
 }
