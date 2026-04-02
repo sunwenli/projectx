@@ -1,4 +1,4 @@
-module projectx
+module github.com/sunwenli/projectx
 
 go 1.25.5
 
