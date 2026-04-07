@@ -1,10 +1,11 @@
 package core
 
 import (
-	"projectx/crypto"
-	"projectx/types"
 	"testing"
 	"time"
+
+	"github.com/sunwenli/projectx/crypto"
+	"github.com/sunwenli/projectx/types"
 
 	"github.com/stretchr/testify/assert"
 )

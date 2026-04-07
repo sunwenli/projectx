@@ -6,8 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"projectx/crypto"
-	"projectx/types"
+
+	"github.com/sunwenli/projectx/crypto"
+	"github.com/sunwenli/projectx/types"
 )
 
 type Header struct {

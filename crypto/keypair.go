@@ -8,7 +8,8 @@ import (
 	"encoding/hex"
 	"io"
 	"math/big"
-	"projectx/types"
+
+	"github.com/sunwenli/projectx/types"
 )
 
 type PrivateKey struct {

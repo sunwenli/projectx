@@ -1,8 +1,9 @@
 package core
 
 import (
-	"projectx/crypto"
 	"testing"
+
+	"github.com/sunwenli/projectx/crypto"
 
 	"github.com/stretchr/testify/assert"
 )

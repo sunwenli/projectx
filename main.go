@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"projectx/network"
 	"time"
+
+	"github.com/sunwenli/projectx/network"
 )
 
 func main() {

@@ -2,8 +2,9 @@ package core
 
 import (
 	"fmt"
-	"projectx/types"
 	"testing"
+
+	"github.com/sunwenli/projectx/types"
 
 	"github.com/stretchr/testify/assert"
 )
