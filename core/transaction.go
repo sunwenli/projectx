@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"io"
 
 	"github.com/sunwenli/projectx/crypto"
 	"github.com/sunwenli/projectx/types"
@@ -16,6 +15,9 @@ type Transaction struct {
 
 	//cached version of the tx data hash
 	hash types.Hash
+
+	//
+	firstSeen int64
 }
 
 func NewTransaction(data []byte) *Transaction {
@@ -52,5 +54,16 @@ func (tx *Transaction) Verify() error {
 	return nil
 }
 
-func (t *Transaction) EncodeBinary(w io.Writer) error { return nil }
-func (t *Transaction) DecodeBinary(r io.Reader) error { return nil }
+func (tx *Transaction) Encode(enc Encoder[*Transaction]) error {
+	return enc.Encode(tx)
+}
+func (tx *Transaction) Decode(dec Decoder[*Transaction]) error {
+	return dec.Decode(tx)
+}
+
+func (tx *Transaction) SetFirstSeen(t int64) {
+	tx.firstSeen = t
+}
+func (tx *Transaction) FirstSeen() int64 {
+	return tx.firstSeen
+}

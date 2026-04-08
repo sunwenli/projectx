@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/sunwenli/projectx/crypto"
@@ -34,4 +35,15 @@ func randomTransactionWithSignature(t *testing.T) *Transaction {
 }
 func TestR(t *testing.T) {
 	randomTransactionWithSignature(t)
+}
+
+func TestEncoderDecoder(t *testing.T) {
+	tx := randomTransactionWithSignature(t)
+	buf := &bytes.Buffer{}
+
+	assert.Nil(t, tx.Encode(NewTxGobEncoder(buf)))
+
+	txdec := new(Transaction)
+	assert.Nil(t, txdec.Decode(NewTxGobDecoder(buf)))
+	assert.Equal(t, tx, txdec)
 }
