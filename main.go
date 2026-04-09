@@ -1,8 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"math/rand"
+	"strconv"
 	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/sunwenli/projectx/core"
+	"github.com/sunwenli/projectx/crypto"
 
 	"github.com/sunwenli/projectx/network"
 )
@@ -17,7 +24,9 @@ func main() {
 
 	go func() {
 		for {
-			trremote.SendMessage(trlocal.Addr(), []byte("hello,world"))
+			if err := sendTransaction(trremote, trlocal.Addr()); err != nil {
+				logrus.Error(err)
+			}
 			time.Sleep(1 * time.Second)
 		}
 	}()
@@ -27,4 +36,17 @@ func main() {
 	}
 	s := network.NewServer(opts)
 	s.Start()
+}
+
+func sendTransaction(tr network.Transport, to network.NetAddr) error {
+	privkey := crypto.GeneratePrivateKey()
+	data := []byte(strconv.FormatInt(int64(rand.Intn(100000)), 10))
+	tx := core.NewTransaction(data)
+	tx.Sign(privkey)
+	buf := &bytes.Buffer{}
+	if err := tx.Encode(core.NewTxGobEncoder(buf)); err != nil {
+		return err
+	}
+	msg := network.NewMessage(network.MessageTypeTx, buf.Bytes())
+	return tr.SendMessage(to, msg.Byte())
 }

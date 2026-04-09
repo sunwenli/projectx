@@ -27,6 +27,10 @@ func TestMessage(t *testing.T) {
 	assert.Nil(t, tra.SendMessage(trb.addr, msg))
 
 	rpc := <-trb.consumeCh
-	assert.Equal(t, rpc.Payload, msg)
+	buf := make([]byte, len(msg))
+	n, err := rpc.Payload.Read(buf)
+	assert.Nil(t, err)
+	assert.Equal(t, buf, msg)
+	assert.Equal(t, n, len(buf))
 	assert.Equal(t, rpc.From, tra.addr)
 }
