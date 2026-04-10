@@ -2,7 +2,6 @@ package core
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/sunwenli/projectx/crypto"
 	"github.com/sunwenli/projectx/types"
@@ -38,7 +37,7 @@ func (tx *Transaction) Sign(prikey crypto.PrivateKey) error {
 		return err
 	}
 
-	fmt.Println("sig:", sig)
+	// fmt.Println("sig:", sig)
 	tx.Signature = sig
 	tx.From = prikey.PublicKey()
 	return nil
