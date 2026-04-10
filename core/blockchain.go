@@ -48,8 +48,8 @@ func (bc *BlockChain) GetHeader(heigth uint32) (*Header, error) {
 	return bc.headers[heigth], nil
 }
 func (bc *BlockChain) Heigth() uint32 {
-	bc.lock.Lock()
-	defer bc.lock.Unlock()
+	// bc.lock.Lock()
+	// defer bc.lock.Unlock()
 
 	return uint32(len(bc.headers) - 1)
 }

@@ -2,9 +2,11 @@ package core
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/sunwenli/projectx/crypto"
 	"github.com/sunwenli/projectx/types"
@@ -36,11 +38,40 @@ type Block struct {
 	hash types.Hash
 }
 
-func NewBlock(h *Header, txx []Transaction) *Block {
+func NewBlock(h *Header, txx []Transaction) (*Block, error) {
 	return &Block{
 		Header:       h,
 		Transactions: txx,
+	}, nil
+}
+
+func NewBlockFromPrevHeader(prevHeader *Header, txx []Transaction) (*Block, error) {
+
+	datahas, err := calculateDataHash(txx)
+	if err != nil {
+		return nil, err
 	}
+	header := &Header{
+		Version:       1,
+		Heigth:        prevHeader.Heigth + 1,
+		DataHash:      datahas,
+		PrevBlockHash: BlockHasher{}.Hash(prevHeader),
+		TimeStamp:     time.Now().UnixNano(),
+	}
+	return NewBlock(header, txx)
+}
+
+func calculateDataHash(txx []Transaction) (hash types.Hash, err error) {
+
+	buf := &bytes.Buffer{}
+	for _, tx := range txx {
+		if err = tx.Encode(NewTxGobEncoder(buf)); err != nil {
+			return
+		}
+	}
+	hash = sha256.Sum256(buf.Bytes())
+
+	return
 }
 
 func (b *Block) Sign(prikey crypto.PrivateKey) error {
@@ -64,6 +95,13 @@ func (b *Block) Verify() error {
 		if err := tx.Verify(); err != nil {
 			return err
 		}
+	}
+	datahas, err := calculateDataHash(b.Transactions)
+	if err != nil {
+		return err
+	}
+	if datahas != b.DataHash {
+		return fmt.Errorf("block (%s) has an invalid data hash", b.Hash(BlockHasher{}))
 	}
 	return nil
 }
