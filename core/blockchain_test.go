@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-kit/log"
 	"github.com/sunwenli/projectx/types"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func newgenesisblock(t *testing.T) *BlockChain {
-	bc, err := NewBlockChain(randomBlock(t, 0, types.Hash{}))
+	bc, err := NewBlockChain(log.NewNopLogger(), randomBlock(t, 0, types.Hash{}))
 	assert.Nil(t, err)
 	return bc
 }

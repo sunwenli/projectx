@@ -30,7 +30,7 @@ func (h *Header) Bytes() []byte {
 
 type Block struct {
 	*Header
-	Transactions []Transaction
+	Transactions []*Transaction
 
 	Validator crypto.PublicKey
 	Signature *crypto.Signature
@@ -38,14 +38,14 @@ type Block struct {
 	hash types.Hash
 }
 
-func NewBlock(h *Header, txx []Transaction) (*Block, error) {
+func NewBlock(h *Header, txx []*Transaction) (*Block, error) {
 	return &Block{
 		Header:       h,
 		Transactions: txx,
 	}, nil
 }
 
-func NewBlockFromPrevHeader(prevHeader *Header, txx []Transaction) (*Block, error) {
+func NewBlockFromPrevHeader(prevHeader *Header, txx []*Transaction) (*Block, error) {
 
 	datahas, err := calculateDataHash(txx)
 	if err != nil {
@@ -61,7 +61,7 @@ func NewBlockFromPrevHeader(prevHeader *Header, txx []Transaction) (*Block, erro
 	return NewBlock(header, txx)
 }
 
-func calculateDataHash(txx []Transaction) (hash types.Hash, err error) {
+func calculateDataHash(txx []*Transaction) (hash types.Hash, err error) {
 
 	buf := &bytes.Buffer{}
 	for _, tx := range txx {
@@ -107,7 +107,7 @@ func (b *Block) Verify() error {
 }
 
 func (b *Block) AddTransaction(tx *Transaction) {
-	b.Transactions = append(b.Transactions, *tx)
+	b.Transactions = append(b.Transactions, tx)
 }
 
 func (b *Block) Encode(enc Encoder[*Block]) error {

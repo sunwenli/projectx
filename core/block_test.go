@@ -19,7 +19,7 @@ func randomBlock(t *testing.T, height uint32, prevBlockHash types.Hash) *Block {
 		Heigth:        height,
 		TimeStamp:     time.Now().UnixNano(),
 	}
-	b, err := NewBlock(h, []Transaction{tx})
+	b, err := NewBlock(h, []*Transaction{tx})
 	assert.Nil(t, err)
 
 	datahash, err := calculateDataHash(b.Transactions)

@@ -43,7 +43,7 @@ func NewServer(opts ServerOpts) (*Server, error) {
 		opts.Logger = log.NewLogfmtLogger(os.Stderr)
 		opts.Logger = log.With(opts.Logger, "ID", opts.ID)
 	}
-	chain, err := core.NewBlockChain(genesisBlock())
+	chain, err := core.NewBlockChain(opts.Logger, genesisBlock())
 	if err != nil {
 		return nil, err
 	}
@@ -134,6 +134,10 @@ func (s *Server) broadcast(payload []byte) error {
 	}
 	return nil
 }
+
+func (s *Server) broadcastBlock(b *core.Block) error {
+	return nil
+}
 func (s *Server) broadcasttx(tx *core.Transaction) error {
 	buf := &bytes.Buffer{}
 	if err := tx.Encode(core.NewTxGobEncoder(buf)); err != nil {
@@ -160,7 +164,8 @@ func (s *Server) createNewBlock() error {
 	if err != nil {
 		return err
 	}
-	block, err := core.NewBlockFromPrevHeader(currentHeader, nil)
+	txx := s.memPool.Transactions()
+	block, err := core.NewBlockFromPrevHeader(currentHeader, txx)
 	if err != nil {
 		return err
 	}
@@ -171,6 +176,7 @@ func (s *Server) createNewBlock() error {
 		return err
 	}
 
+	s.memPool.Flush()
 	return nil
 }
 
