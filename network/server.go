@@ -25,7 +25,7 @@ type ServerOpts struct {
 }
 type Server struct {
 	ServerOpts
-	memPool     *TxPool
+	mempool     *TxPool
 	chain       *core.BlockChain
 	isValidator bool
 	rpcCh       chan RPC
@@ -50,7 +50,7 @@ func NewServer(opts ServerOpts) (*Server, error) {
 	s := &Server{
 		ServerOpts:  opts,
 		chain:       chain,
-		memPool:     NewTxPool(),
+		mempool:     NewTxPool(1000),
 		isValidator: opts.PrivateKey != nil,
 		rpcCh:       make(chan RPC),
 		quitCh:      make(chan struct{}, 1),
@@ -109,22 +109,22 @@ func (s *Server) processTransaction(tx *core.Transaction) error {
 		return err
 	}
 	hash := tx.Hash(core.TxHasher{})
-	if s.memPool.Has(hash) {
+	if s.mempool.Contains(hash) {
 		s.Logger.Log(
 			"msg", "transaction already in mempool",
 			"hash", hash,
 		)
 		return nil
 	}
-	tx.SetFirstSeen(time.Now().UnixNano())
 
 	s.Logger.Log(
 		"msg", "adding new tx to mempool",
 		"hash", hash,
-		"mempool len", s.memPool.Len(),
+		"mempoolpending", s.mempool.PendingCount(),
 	)
 	go s.broadcasttx(tx)
-	return s.memPool.Add(tx)
+	s.mempool.Add(tx)
+	return nil
 }
 func (s *Server) broadcast(payload []byte) error {
 	for _, tr := range s.Transports {
@@ -164,7 +164,7 @@ func (s *Server) createNewBlock() error {
 	if err != nil {
 		return err
 	}
-	txx := s.memPool.Transactions()
+	txx := s.mempool.Pending()
 	block, err := core.NewBlockFromPrevHeader(currentHeader, txx)
 	if err != nil {
 		return err
@@ -176,7 +176,7 @@ func (s *Server) createNewBlock() error {
 		return err
 	}
 
-	s.memPool.Flush()
+	s.mempool.PendingClear()
 	return nil
 }
 

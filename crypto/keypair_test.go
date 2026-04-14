@@ -1,7 +1,6 @@
 package crypto
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +12,6 @@ func TestSignVerifySuccess(t *testing.T) {
 
 	msg := []byte("hello,world")
 	sig, err := prikey.Sign(msg)
-	fmt.Println(sig)
 	assert.Nil(t, err)
 
 	res := sig.Verify(pubkey, msg)
@@ -25,7 +23,6 @@ func TestSignVerifyFail(t *testing.T) {
 
 	msg := []byte("hello,world")
 	sig, err := prikey.Sign(msg)
-	fmt.Println(sig)
 	assert.Nil(t, err)
 
 	res := sig.Verify(pubkey, []byte("hhh"))

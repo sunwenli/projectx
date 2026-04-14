@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/go-kit/log"
@@ -18,7 +17,6 @@ func newgenesisblock(t *testing.T) *BlockChain {
 func TestBlockChain(t *testing.T) {
 	bc := newgenesisblock(t)
 	assert.NotNil(t, bc.validator)
-	fmt.Println(bc.Heigth())
 }
 
 func TestHasBlock(t *testing.T) {
