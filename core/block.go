@@ -47,7 +47,7 @@ func NewBlock(h *Header, txx []*Transaction) (*Block, error) {
 
 func NewBlockFromPrevHeader(prevHeader *Header, txx []*Transaction) (*Block, error) {
 
-	datahas, err := calculateDataHash(txx)
+	datahas, err := CalculateDataHash(txx)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func NewBlockFromPrevHeader(prevHeader *Header, txx []*Transaction) (*Block, err
 	return NewBlock(header, txx)
 }
 
-func calculateDataHash(txx []*Transaction) (hash types.Hash, err error) {
+func CalculateDataHash(txx []*Transaction) (hash types.Hash, err error) {
 
 	buf := &bytes.Buffer{}
 	for _, tx := range txx {
@@ -96,7 +96,7 @@ func (b *Block) Verify() error {
 			return err
 		}
 	}
-	datahas, err := calculateDataHash(b.Transactions)
+	datahas, err := CalculateDataHash(b.Transactions)
 	if err != nil {
 		return err
 	}

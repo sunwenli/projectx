@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"testing"
 	"time"
 
@@ -22,7 +23,7 @@ func randomBlock(t *testing.T, height uint32, prevBlockHash types.Hash) *Block {
 	b, err := NewBlock(h, []*Transaction{tx})
 	assert.Nil(t, err)
 
-	datahash, err := calculateDataHash(b.Transactions)
+	datahash, err := CalculateDataHash(b.Transactions)
 	assert.Nil(t, err)
 
 	b.Header.DataHash = datahash
@@ -60,4 +61,14 @@ func TestVerifyBlock(t *testing.T) {
 
 	b.Heigth = 100
 	assert.NotNil(t, b.Verify())
+}
+
+func TestDecodeEncodeBlock(t *testing.T) {
+	b := randomBlock(t, 1, types.Hash{})
+	buf := &bytes.Buffer{}
+	assert.Nil(t, b.Encode(NewGobBlockEncoder(buf)))
+
+	bDecode := new(Block)
+	assert.Nil(t, bDecode.Decode(NewGobBlockDecoder(buf)))
+	assert.Equal(t, bDecode, b)
 }
