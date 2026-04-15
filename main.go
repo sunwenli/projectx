@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"math/rand"
-	"strconv"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -73,7 +71,7 @@ func makeserver(id string, tr network.Transport, pk *crypto.PrivateKey) *network
 }
 func sendTransaction(tr network.Transport, to network.NetAddr) error {
 	privkey := crypto.GeneratePrivateKey()
-	data := []byte(strconv.FormatInt(int64(rand.Intn(100000)), 10))
+	data := []byte{0x01, 0x0a, 0x02, 0x0a, 0x0b}
 	tx := core.NewTransaction(data)
 	tx.Sign(privkey)
 	buf := &bytes.Buffer{}
