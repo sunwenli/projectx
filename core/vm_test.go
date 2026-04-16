@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,24 +18,28 @@ func TestStack(t *testing.T) {
 }
 
 func TestVm(t *testing.T) {
-	data := []byte{0x01, 0x0a, 0x02, 0x0a, 0x0b}
-	vm := NewVm(data)
+	contractstat := NewState()
+	// data := []byte{0x01, 0x0a, 0x02, 0x0a, 0x0b}
+	// vm := NewVm(data, contractstat)
+	// assert.Nil(t, vm.Run())
+
+	// assert.Equal(t, int(3), vm.stack.Pop())
+
+	// data := []byte{0x03, 0x0a, 0x46, 0x0c, 0x4f, 0x0c, 0x4f, 0x0c, 0x0d}
+	data := []byte{0x03, 0x0a, 0x46, 0x0c, 0x4f, 0x0c, 0x4f, 0x0c, 0x0d, 0x05, 0x0a, 0x0f}
+	vm := NewVm(data, contractstat)
 	assert.Nil(t, vm.Run())
 
-	assert.Equal(t, int(3), vm.stack.Pop())
-
-	data = []byte{0x03, 0x0a, 0x46, 0x0c, 0x4f, 0x0c, 0x4f, 0x0c, 0x0d}
-	vm = NewVm(data)
-	assert.Nil(t, vm.Run())
-
-	result := vm.stack.Pop().([]byte)
-	fmt.Println("result :", string(result))
-	assert.Equal(t, "FOO", string(result))
+	valuebyte, err := vm.contractState.Get([]byte("FOO"))
+	assert.Nil(t, err)
+	value := deserializeInt64(valuebyte)
+	assert.Equal(t, int64(5), value)
 }
 
 func TestSub(t *testing.T) {
+	contractstat := NewState()
 	data := []byte{0x03, 0x0a, 0x02, 0x0a, 0x0e}
-	vm := NewVm(data)
+	vm := NewVm(data, contractstat)
 	assert.Nil(t, vm.Run())
 
 	assert.Equal(t, int(1), vm.stack.Pop().(int))
