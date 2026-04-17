@@ -2,6 +2,7 @@ package network
 
 import (
 	"bytes"
+	"encoding/gob"
 	"fmt"
 	"os"
 	"time"
@@ -20,6 +21,7 @@ type ServerOpts struct {
 	RPCDecodeFunc RPCDecodeFunc
 	RPCProcessor  RPCProcessor
 	Transports    []Transport
+	Transport     Transport
 	BlockTime     time.Duration
 	PrivateKey    *crypto.PrivateKey
 }
@@ -102,8 +104,47 @@ func (s *Server) ProcessMessage(msg *DecodeMessage) error {
 		return s.processTransaction(t)
 	case *core.Block:
 		return s.processBlock(t)
+	case *GetStatusMessage:
+		return s.processGetStatusMessage(msg.From, t)
+	case *StatusMessage:
+		return s.processStatusMessage(msg.From, t)
 	}
 	return nil
+}
+
+func (s *Server) sendGetStatusMessage(tr Transport) error {
+	var (
+		getstatusmsg = new(GetStatusMessage)
+		buf          = new(bytes.Buffer)
+	)
+
+	if err := gob.NewEncoder(buf).Encode(getstatusmsg); err != nil {
+		return err
+	}
+	msg := NewMessage(MessageTypeGetStatus, buf.Bytes())
+	if err := tr.SendMessage(tr.Addr(), msg.Byte()); err != nil {
+		return err
+	}
+	return nil
+}
+func (s *Server) processStatusMessage(from NetAddr, data *StatusMessage) error {
+	fmt.Printf("=> received getstatus response msg from %+v => %+v\n", from, data)
+	return nil
+}
+func (s *Server) processGetStatusMessage(from NetAddr, data *GetStatusMessage) error {
+	fmt.Printf("=> received getstatus msg from %+v => %+v\n", from, data)
+
+	stausMessage := &StatusMessage{
+		ID:            s.ID,
+		CurrentHeigth: s.chain.Heigth(),
+	}
+	buf := new(bytes.Buffer)
+	if err := gob.NewEncoder(buf).Encode(stausMessage); err != nil {
+		return err
+	}
+	msg := NewMessage(MessageTypeStatus, buf.Bytes())
+
+	return s.Transport.SendMessage(from, msg.Byte())
 }
 func (s *Server) processBlock(b *core.Block) error {
 	if err := s.chain.AddBlock(b); err != nil {
