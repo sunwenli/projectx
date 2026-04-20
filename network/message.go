@@ -6,3 +6,7 @@ type StatusMessage struct {
 	Version       uint32
 	CurrentHeigth uint32
 }
+type GetBlockMessage struct {
+	From uint32
+	To   uint32
+}

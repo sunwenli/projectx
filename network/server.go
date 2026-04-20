@@ -43,7 +43,7 @@ func NewServer(opts ServerOpts) (*Server, error) {
 	}
 	if opts.Logger == nil {
 		opts.Logger = log.NewLogfmtLogger(os.Stderr)
-		opts.Logger = log.With(opts.Logger, "ID", opts.ID)
+		opts.Logger = log.With(opts.Logger, "addr", opts.Transport.Addr())
 	}
 	chain, err := core.NewBlockChain(opts.Logger, genesisBlock())
 	if err != nil {
@@ -64,6 +64,7 @@ func NewServer(opts ServerOpts) (*Server, error) {
 	if s.isValidator {
 		go s.validatorLoop()
 	}
+	s.bootstrapNodes()
 	return s, nil
 }
 
@@ -98,6 +99,20 @@ func (s *Server) validatorLoop() {
 	}
 }
 
+func (s *Server) bootstrapNodes() {
+	for _, tr := range s.Transports {
+		if s.Transport.Addr() != tr.Addr() {
+			if err := s.Transport.Connect(tr); err != nil {
+				s.Logger.Log("error", "could not connect to remote", "err", err)
+			}
+		}
+		s.Logger.Log("msg", "connect to remote", "we", s.Transport.Addr(), "addr", tr.Addr())
+		if err := s.sendGetStatusMessage(tr); err != nil {
+			s.Logger.Log("error", "sendGetStatusMessage", "err", err)
+		}
+	}
+}
+
 func (s *Server) ProcessMessage(msg *DecodeMessage) error {
 	switch t := msg.Data.(type) {
 	case *core.Transaction:
@@ -108,6 +123,8 @@ func (s *Server) ProcessMessage(msg *DecodeMessage) error {
 		return s.processGetStatusMessage(msg.From, t)
 	case *StatusMessage:
 		return s.processStatusMessage(msg.From, t)
+	case *GetBlockMessage:
+		return s.processGetBlockMessage(msg.From, t)
 	}
 	return nil
 }
@@ -122,14 +139,31 @@ func (s *Server) sendGetStatusMessage(tr Transport) error {
 		return err
 	}
 	msg := NewMessage(MessageTypeGetStatus, buf.Bytes())
-	if err := tr.SendMessage(tr.Addr(), msg.Byte()); err != nil {
+	if err := s.Transport.SendMessage(tr.Addr(), msg.Byte()); err != nil {
 		return err
 	}
 	return nil
 }
+func (s *Server) processGetBlockMessage(from NetAddr, data *GetBlockMessage) error {
+	fmt.Printf("get block message=>%v\n", data)
+	return nil
+}
 func (s *Server) processStatusMessage(from NetAddr, data *StatusMessage) error {
 	fmt.Printf("=> received getstatus response msg from %+v => %+v\n", from, data)
-	return nil
+	if data.CurrentHeigth <= s.chain.Heigth() {
+		s.Logger.Log("msg", "cannot sync blockheigth to low", "ourheight", s.chain.Heigth(), "theirheight", data.CurrentHeigth, "addr", from)
+	}
+	getblockMessage := &GetBlockMessage{
+		From: s.chain.Heigth(),
+		To:   0,
+	}
+	buf := new(bytes.Buffer)
+	if err := gob.NewEncoder(buf).Encode(getblockMessage); err != nil {
+		return err
+	}
+	msg := NewMessage(MessageTypeGetBlocks, buf.Bytes())
+
+	return s.Transport.SendMessage(from, msg.Byte())
 }
 func (s *Server) processGetStatusMessage(from NetAddr, data *GetStatusMessage) error {
 	fmt.Printf("=> received getstatus msg from %+v => %+v\n", from, data)

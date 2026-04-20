@@ -37,6 +37,9 @@ func (t *LocalTransport) Connect(tr Transport) error {
 func (t *LocalTransport) SendMessage(to NetAddr, payload []byte) error {
 	t.lock.Lock()
 	defer t.lock.Unlock()
+	if t.addr == to {
+		return nil
+	}
 	peer, ok := t.peers[to]
 	if !ok {
 		return errors.New(fmt.Sprintf("%s: could noet send message to :%s", t.addr, to))
