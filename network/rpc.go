@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io"
+	"net"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sunwenli/projectx/core"
@@ -23,7 +24,8 @@ const (
 )
 
 type RPC struct {
-	From    NetAddr
+	// From    NetAddr
+	From    net.Addr
 	Payload io.Reader
 }
 
@@ -50,7 +52,7 @@ type RPCProcessor interface {
 }
 
 type DecodeMessage struct {
-	From NetAddr
+	From net.Addr
 	Data any
 }
 type RPCDecodeFunc func(RPC) (*DecodeMessage, error)
